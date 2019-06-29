@@ -59,12 +59,12 @@ let texture = AC.getAsset("tex");
 
 ### stageForLoading( loader, url, name, category )
 ##### loader
-Loading function for the type of asset being staged. This funtion would be called against its respective asset url when all staged assets are to be loaded. It should have the below signature as is the case with most three.js loaders:
+Loading function for the type of asset being staged. This function would be called against its respective asset url when all staged assets are to be loaded. It should have the below signature as is the case with most three.js loaders:
 ```js
 function ( url, onCompleted, onProgress, onError )
 ```
 ##### url
-The url of the asset. For cube texures this can be an array (see sample in the example folder)
+The url of the asset. For cube textures this can be an array (see sample in the example folder)
 ##### name
 Identifier name for the asset. This name is used when there is need to retrieve the asset and should be unique within a category.
 ##### category (optional)
@@ -94,7 +94,7 @@ function ( currentAssetProgress, totalAssetProgress, currentAssetUrl )
 ##### name
 The identifier name of the asset to retrieve
 ##### category (optional)
-Category of the asset to retieve. Defaults to `"general"`
+Category of the asset to retrieve. Defaults to `"general"`
 
 <br />
 
@@ -105,7 +105,7 @@ The identifier name of the asset to retrieve
 ##### index
 Index of the value returned by the loader that is to be retrieved
 ##### category (optional)
-Category of the asset to retieve. Defaults to `"general"`
+Category of the asset to retrieve. Defaults to `"general"`
 
 <br />
 
