@@ -1,0 +1,16 @@
+{
+  "name": "AssetCache",
+  "version": "1.0.0",
+  "description": "Asset cache for Three.js and related projects",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BlueMagnificent/AssetCache.git"
+  },
+  "keywords": ["three.js", "javascript"],
+  "author": "BlueMagnificent <bluemagnificent@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/BlueMagnificent/AssetCache/issues"
+  },
+  "homepage": "https://github.com/BlueMagnificent/AssetCache#readme"
+}

@@ -1,0 +1,169 @@
+<html>
+	<head>
+		<title>Asset Cache Example</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<style>
+			body { margin: 0; padding: 0px}
+		</style>
+	</head>
+	<body>
+		<script src="threejs/three.min.js"></script>
+		<script src="threejs/OrbitControls.js"></script>
+		<script src="../AssetCache.js"></script>
+		<script>
+
+		
+
+			let scene, camera, renderer
+
+			start();
+
+			function start(){
+
+
+				//Stage Assets To be loaded
+				//Texture
+				let textureLoader = new THREE.TextureLoader();
+				AC.stageForLoading(textureLoader.load.bind(textureLoader), "assets/texture/tex.png", "tex");
+
+				//Cube texture
+				let cubeTextureLoader = new THREE.CubeTextureLoader();
+				cubeTextureLoader.setPath('assets/skybox/');
+				AC.stageForLoading(cubeTextureLoader.load.bind(cubeTextureLoader), [ 'sahara_ft.png', 'sahara_bk.png',  'sahara_up.png', 'sahara_dn.png','sahara_rt.png', 'sahara_lf.png'], "sahara_skybox");
+
+
+				//Load the assets into AC
+				AC.loadAssets(function(){
+
+					createScene();
+					createRenderer();
+
+					createSkyBox();
+					createBoxModel();
+
+					showInfo();
+					
+					renderFrame();
+
+				})
+
+			}
+
+			function showInfo() {
+				
+				let container = document.createElement( 'div' );
+				document.body.appendChild( container );
+
+				let info = document.createElement( 'div' );
+				info.style.position = 'absolute';
+				info.style.top = '10px';
+				info.style.width = '100%';
+				info.style.textAlign = 'center';
+				info.style.color = 'white';
+				info.innerHTML = 'Asset Cache usage example<br/>Drag to rotate';
+				container.appendChild( info );
+
+			}
+
+
+			function createScene() {
+
+				//create the scene
+				scene = new THREE.Scene();
+
+				//create camera
+				camera = new THREE.PerspectiveCamera( 60, window.innerWidth / window.innerHeight, 0.2, 5000 );
+				camera.position.set( 0, 0, 5 );
+
+				let controls = new THREE.OrbitControls( camera );
+				controls.target.set(0, 0, 0);
+				controls.update();
+				controls.screenSpacePanning = true;
+
+				//Add hemisphere light
+				let hemiLight = new THREE.HemisphereLight( 0xffffff, 0xffffff, 0.1 );
+				hemiLight.color.setHSL( 0.6, 0.6, 0.6 );
+				hemiLight.groundColor.setHSL( 0.1, 1, 0.4 );
+				hemiLight.position.set( 0, 50, 0 );
+				scene.add( hemiLight );
+
+				//Add directional light
+				let dirLight = new THREE.DirectionalLight( 0xffffff , 1);
+				dirLight.color.setHSL( 0.1, 1, 0.95 );
+				dirLight.position.set( -1, 1.75, 1 );
+				dirLight.position.multiplyScalar( 100 );
+				scene.add( dirLight );
+
+				dirLight.castShadow = true;
+
+				dirLight.shadow.mapSize.width = 2048;
+				dirLight.shadow.mapSize.height = 2048;
+
+				let d = 50;
+
+				dirLight.shadow.camera.left = -d;
+				dirLight.shadow.camera.right = d;
+				dirLight.shadow.camera.top = d;
+				dirLight.shadow.camera.bottom = -d;
+
+				dirLight.shadow.camera.far = 13500;
+
+
+			}
+
+
+			function createRenderer(){
+
+				//Setup the renderer
+				renderer = new THREE.WebGLRenderer( { antialias: true } );
+				renderer.setClearColor( 0xbfd1e5 );
+				renderer.setPixelRatio( window.devicePixelRatio );
+				renderer.setSize( window.innerWidth, window.innerHeight );
+				document.body.appendChild( renderer.domElement );
+
+				renderer.gammaInput = true;
+				renderer.gammaOutput = true;
+
+				renderer.shadowMap.enabled = true;
+
+				window.addEventListener( 'resize', function(){
+
+					camera.aspect = window.innerWidth / window.innerHeight;
+					camera.updateProjectionMatrix();
+
+					renderer.setSize( window.innerWidth, window.innerHeight );
+					
+				}, false );
+
+			}
+
+			function createSkyBox() {
+
+				let cubeTex = AC.getAsset( "sahara_skybox" );
+				scene.background = cubeTex;
+
+			}
+
+			function createBoxModel() {
+
+				let tex = AC.getAsset('tex');
+
+				let box = new THREE.Mesh( new THREE.BoxBufferGeometry(), new THREE.MeshPhongMaterial( { map: tex } ) );
+
+				scene.add(box);
+
+			}
+
+			function renderFrame() {
+
+				renderer.render( scene, camera );
+
+				requestAnimationFrame( renderFrame );
+
+			}
+
+		
+		</script>
+    </body>
+</html>
