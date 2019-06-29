@@ -1,5 +1,5 @@
 # AssetCache
-An asset cache/manager developed primarily for use with [Three.js](https://threejs.org/) asset loaders.
+An asset cache/manager developed primarily for use with [Three.js](https://threejs.org/) asset loaders. AssetCache helps you load all your assets at once, cache them, and then retrieve them individually when needed.
 
 ## Installation
 
