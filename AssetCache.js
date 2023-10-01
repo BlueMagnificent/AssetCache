@@ -47,9 +47,9 @@ AssetCache.prototype.stageForLoading = function( loader, url, name, category ) {
 
     if( !loader || !url || !name ) return false;
 
-    if( typeof loader !== 'function' ) return false;
-    if( typeof url !== 'string' && !Array.isArray( url ) ) return false;
-    if( typeof name !== 'string' ) return false;
+    if( typeof loader !== 'function' ) throw Error("loader parameter should be a function");
+    if( typeof url !== 'string' && !Array.isArray( url ) ) throw Error("url parameter should be a string or array of strings");
+    if( typeof name !== 'string' ) throw Error("name parameter should be a string");
 
     category = ( !category || typeof category !== 'string' ) ? this.DEFAULT_CATEGORY : category.toLowerCase();
 
