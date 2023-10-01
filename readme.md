@@ -15,6 +15,8 @@ import AC from './libs/AssetCache';
 ```
 
 ## Usage
+The [example folder](/example) contains a sample threejs project that uses AssetCache to load a skybox and a texture.
+
 ### Staging Assets
 
 To use AccessCache first stage the assets that are to be loaded. This is done by calling AssetCache's `stageForLoading` method passing a loading function, the asset url, the asset identifier name and an optional cache category to it. Let's say we want to load an image texture, we first stage it as shown below. You can stage as many assets as you need for your application. NOTE: cache category has been intentionally omitted.
@@ -27,24 +29,17 @@ let textureLoader = new THREE.TextureLoader();
 AC.stageForLoading(textureLoader.load.bind(textureLoader), "assets/texture/tex.png", "tex");
 ```
 
-<br />
-
 
 ### Loading Assets
 
-When all needed assets have been staged `loadAssets` is called. This method takes, as its first parameter, a callback to be invoked when all the assets have been loaded, and another callback as its second parameter to handle loading progress.
+When all needed assets have been staged `loadAssets` is called. This method returns a promise which resolves when all assets have successfully loaded, an error is thrown if otherwise. An optional callback parameter can be passed to handle loading progress.
 ```js
-AC.loadAssets( function onCompleted( err ) {
-    // if err is null then all assets were loaded successfully into the cache
-    // you can now continue with the rest of the program.
-
-},  function onProgress( currentAssetProgress, totalAssetProgress, assetUrl ) {
-        //do anything you want with the progress info like log to the console or
-        //update a loading UI
+await AC.loadAssets( function onProgress( currentAssetProgress, totalAssetProgress, assetUrl ) {
+    //do anything you want with the progress info like log to the console or
+    //update a loading UI
 });
 ```
 
-<br />
 
 
 ### Using Loaded Assets
@@ -52,8 +47,6 @@ AC.loadAssets( function onCompleted( err ) {
 //get asset based on the identifier name. Asset category intentionally omitted
 let texture = AC.getAsset("tex");
 ```
-
-<br />
 
 
 ## API
@@ -71,20 +64,14 @@ Identifier name for the asset. This name is used when there is need to retrieve 
 ##### category (optional)
 Asset category used to logically group assets. Defaults to `"general"`
 
-<br />
 
 
-### loadAssets( onCompleted, onProgress )
-##### onCompleted
-Callback when all assets have been loaded. Should have signature of:
-```js
-function ( err )
-```
-`err` is null if loading was successful.
+### loadAssets( onProgress ) : Promise
+Call to load the staged assets. Returns a promise that resolves when all assets have been loaded.
 
 
 ##### onProgress (optional)
-Callback for loading progress update. Should have signature of:
+Callback to handle loading progress. Should have signature of:
 ```js
 function ( currentAssetProgress, totalAssetProgress, currentAssetUrl )
 ```
@@ -97,10 +84,9 @@ The identifier name of the asset to retrieve
 ##### category (optional)
 Category of the asset to retrieve. Defaults to `"general"`
 
-<br />
 
 ### getAssetByIndex( name, index, category )
-Sometimes the result of a loading operation by an asset loader function is not just a single value but multiple values passed to the `onCompleted` callback of the loaded. For this case  such values can be retrieve by index
+Sometimes the result of a loading operation by an asset loader function is not just a single value but multiple values passed to the `onCompleted` callback of the loaded. For this case such values can be retrieve by index
 ##### name
 The identifier name of the asset to retrieve
 ##### index
@@ -108,7 +94,6 @@ Index of the value returned by the loader that is to be retrieved
 ##### category (optional)
 Category of the asset to retrieve. Defaults to `"general"`
 
-<br />
 
 
 ## CREDITS
