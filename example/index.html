@@ -17,9 +17,12 @@
 
 			let scene, camera, renderer
 
-			start();
+			start()
+			.catch(err=>{
+				console.log(err)
+			});
 
-			function start(){
+			async function start(){
 
 
 				//Stage Assets To be loaded
@@ -32,21 +35,18 @@
 				cubeTextureLoader.setPath('assets/skybox/');
 				AC.stageForLoading(cubeTextureLoader.load.bind(cubeTextureLoader), [ 'sahara_ft.png', 'sahara_bk.png',  'sahara_up.png', 'sahara_dn.png','sahara_rt.png', 'sahara_lf.png'], "sahara_skybox");
 
-
 				//Load the assets into AC
-				AC.loadAssets(function(){
+				await AC.loadAssets();
+				
+				createScene();
+				createRenderer();
 
-					createScene();
-					createRenderer();
+				createSkyBox();
+				createBoxModel();
 
-					createSkyBox();
-					createBoxModel();
-
-					showInfo();
-					
-					renderFrame();
-
-				})
+				showInfo();
+				
+				renderFrame();
 
 			}
 

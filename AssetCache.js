@@ -18,9 +18,6 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
-
-//NOTE: async_series function gotten from https://stackoverflow.com/questions/13600573/what-is-a-simple-implementation-of-async-series
-
 function AssetCache() {
 
     this.DEFAULT_CATEGORY = 'general';
@@ -53,21 +50,21 @@ AssetCache.prototype.stageForLoading = function( loader, url, name, category ) {
 
     category = ( !category || typeof category !== 'string' ) ? this.DEFAULT_CATEGORY : category.toLowerCase();
 
-    //if asset url is a string check for uniqueness
+    // if asset url is a string check for uniqueness
     if( typeof url === 'string' ) {
 
         let urlIndex = this.loadStaging.findIndex( obj =>obj.url === url );
     
-        //if the url already exists then throw an error
+        // if the url already exists then throw an error
         if ( urlIndex !== -1 ) throw Error( `Asset URL "${url}" already exists` );
 
     }
 
-    //equally check for unique asset names in the same category;
+    // equally check for unique asset names in the same category;
     name = name.toLowerCase();
     let nameIndex = this.loadStaging.findIndex( obj => obj.name === name && obj.category === category );
     
-    //if the name already exits throw an error
+    // if the name already exits throw an error
     if( nameIndex !== -1 ) throw Error( `Asset name "${name}" already exists in categroy {${category}}` );
 
 
@@ -82,81 +79,71 @@ AssetCache.prototype.stageForLoading = function( loader, url, name, category ) {
 /**
  * Load the assets that have been staged
  * 
- * @param {Function} onCompleted callback function to be called when loading has been completed (requried)
  * @param {Function} onProgress callback function to be called showing progress of the loading (optional)
  * 
  * @memberof AssetCache
  */
-AssetCache.prototype.loadAssets = function( onCompleted, onProgress ) {
+AssetCache.prototype.loadAssets = async function ( onProgress ) {
 
     let assetCount = this.loadStaging.length;
     let totalAssetProgress = 0;
     let progressAccumulator = 0;
     let progressAccumulatorStep = 100;
     
-    //if the onProgress callback is null then create one
+    // if the onProgress callback is null then create one
     if( !onProgress ) {
         onProgress = ( currentAssetProgress, totalAssetProgress, currentAssetUrl )=>{
             console.log( `${totalAssetProgress}% completed: Loading ${currentAssetUrl} at ${currentAssetProgress}%` );
         }
     }
 
+    // for each obj in loadStaging invoke loading with the loader function
+    for (const { loader, url, name, category } of this.loadStaging) {
+            
+        await new Promise( ( resolve, reject ) => {
+            loader(
+                url,
+                ( ...args ) => {
 
-    //create wrapper function to be passed to async_series
-    let functs = this.loadStaging.map( obj => {
+                    if( this.cache[ category ] === undefined ) this.cache[ category ] = {};
 
-            return ( cb ) => {
+                    // since we do not know the number of parameters that will be passed we simply stores all the
+                    // passed arguments as an array. But when the asset is to be retrieved by name the first element of
+                    // the array is returned;
+                    this.cache[ category ] [ name ] = [ ...args ];
 
-                obj.loader( 
-                        obj.url, 
-                        ( ...args ) => {
+                    // Update the load progress accumulator
+                    progressAccumulator += progressAccumulatorStep;
 
-                            if( this.cache[ obj.category ] === undefined ) this.cache[ obj.category ] = {};
+                    // Get the total asset loading progress in percentage
+                    totalAssetProgress = progressAccumulator / assetCount;
 
-                            //since we do not know the number of parameters that will be passed we simply stores all the
-                            //passed arguments as an array. But when the asset is to be retrieved by name the first element of
-                            //the array is returned;
-                            this.cache[ obj.category ] [ obj.name ] = [ ...args ];
-                            
-                            //Update the load progress accumulator
-                            progressAccumulator += progressAccumulatorStep;
+                    onProgress( 100, totalAssetProgress, url );
 
-                            console.log( progressAccumulator );
+                    resolve( null );
 
-                            cb( null );
+                },
+                ( xhr ) => {
+                    
+                    // Get the current asset loading progress in percentage
+                    let currentAssetProgress = xhr.loaded / xhr.total * 100;
 
-                        }, 
-                        ( xhr ) => {
-                            
-                            //Get the current asset loading progress in percentage
-                            let currentAssetProgress = xhr.loaded / xhr.total * 100;
+                    // Get the total asset loading progress in percentage
+                    totalAssetProgress = ( progressAccumulator + currentAssetProgress ) / assetCount;
 
-                            //Get the total asset loading progress in percentage
-                            totalAssetProgress = ( progressAccumulator + currentAssetProgress ) / assetCount;
+                    onProgress( currentAssetProgress, totalAssetProgress, url );
 
-                            onProgress( currentAssetProgress, totalAssetProgress, obj.url );
+                },
+                ( err ) => {
 
-                        },
-                        ( err )=>{
+                    console.log( `ERROR: Failed to load "${name}" of category "${category}"` );
+                    console.log( `ERROR: URL "${url}"` );
+                    reject( err );
 
-                            console.log( `ERROR: Failed to load "${obj.name}" of category "${obj.category}"` );
-                            console.log( `ERROR: URL "${obj.url}"` );
-                            cb( err );
-
-                        }
-                )
-            }
-        }
-    );
-
-    //execute the created wrapper functions serially
-    async_series( functs, ( err ) => {
-
-        this.loadStaging = [];
-        onCompleted( err );
-        
-    })
-
+                }
+            )
+        });
+    }
 }
 
 /**
@@ -199,21 +186,6 @@ AssetCache.prototype.getAssetByIndex = function( name, index, category ){
     name = name.toLowerCase();
 
     return this.cache[ category ] [ name ] [ index ];
-}
-
-
-function async_series ( fn_list, final_callback ) {
-    if ( fn_list.length ) {
-        var fn = fn_list.shift();
-
-        var callback = function ( err ) {
-            if ( err ) final_callback( err );
-            else async_series( fn_list,final_callback );
-        };
-
-        fn( callback );
-    }
-    else final_callback( null );
 }
 
 var AC = new AssetCache();
